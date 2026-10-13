@@ -1,0 +1,320 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "BrailleTouch Architecture + Edge Cases",
+    "output": ".archify/architecture-brailletouch-edge-cases-20261001-215549/brailletouch-edge-cases.html",
+    "quality_profile": "showcase",
+    "locale": "en"
+  },
+  "components": [
+    {
+      "id": "dashboard",
+      "type": "frontend",
+      "label": "Dashboard",
+      "sublabel": "index.html + app.js",
+      "tag": "WS retry 2s",
+      "pos": [
+        40,
+        80
+      ],
+      "size": [
+        150,
+        84
+      ]
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "FastAPI backend",
+      "sublabel": "main.py :8000",
+      "pos": [
+        300,
+        80
+      ],
+      "size": [
+        170,
+        64
+      ]
+    },
+    {
+      "id": "camera",
+      "type": "external",
+      "label": "ESP32-CAM",
+      "sublabel": "OV2640 · /capture",
+      "tag": "blocks until OCR+AI",
+      "pos": [
+        700,
+        80
+      ],
+      "size": [
+        170,
+        84
+      ]
+    },
+    {
+      "id": "session",
+      "type": "backend",
+      "label": "SessionManager",
+      "sublabel": "state + play loop",
+      "tag": "crashes at end",
+      "pos": [
+        300,
+        280
+      ],
+      "size": [
+        170,
+        84
+      ]
+    },
+    {
+      "id": "gemini",
+      "type": "cloud",
+      "label": "Gemini API",
+      "sublabel": "generateContent",
+      "tag": "fail-soft",
+      "pos": [
+        700,
+        280
+      ],
+      "size": [
+        170,
+        84
+      ]
+    },
+    {
+      "id": "braille",
+      "type": "backend",
+      "label": "Braille engine",
+      "sublabel": "UEB Grade 1 a–z",
+      "tag": "drops 0-9 + punct.",
+      "pos": [
+        300,
+        480
+      ],
+      "size": [
+        170,
+        84
+      ]
+    },
+    {
+      "id": "motorEsp",
+      "type": "external",
+      "label": "Motor ESP32",
+      "sublabel": "POST /motors",
+      "tag": "blocks during WAV",
+      "pos": [
+        700,
+        480
+      ],
+      "size": [
+        170,
+        84
+      ]
+    },
+    {
+      "id": "motors",
+      "type": "external",
+      "label": "6 vibration motors",
+      "sublabel": "GPIO 26 27 14 12 13 33",
+      "pos": [
+        980,
+        480
+      ],
+      "size": [
+        170,
+        64
+      ]
+    },
+    {
+      "id": "speaker",
+      "type": "external",
+      "label": "Speaker",
+      "sublabel": "letter WAVs (LittleFS)",
+      "tag": "never triggered",
+      "pos": [
+        700,
+        650
+      ],
+      "size": [
+        170,
+        84
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Laptop · Python backend",
+      "wraps": [
+        "api",
+        "session",
+        "braille"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "Motor controller board",
+      "wraps": [
+        "motorEsp",
+        "motors",
+        "speaker"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "dash-to-api",
+      "from": "dashboard",
+      "to": "api",
+      "label": "POST /api/*",
+      "variant": "emphasis"
+    },
+    {
+      "id": "api-trigger-cam",
+      "from": "api",
+      "to": "camera",
+      "label": "POST /capture · 10s",
+      "variant": "emphasis"
+    },
+    {
+      "id": "cam-upload-jpeg",
+      "from": "camera",
+      "to": "api",
+      "label": "JPEG → /api/capture · 20s",
+      "variant": "emphasis",
+      "fromSide": "top",
+      "toSide": "top",
+      "via": [
+        [
+          785,
+          24
+        ],
+        [
+          385,
+          24
+        ]
+      ]
+    },
+    {
+      "id": "api-to-session",
+      "from": "api",
+      "to": "session",
+      "label": "capture / controls"
+    },
+    {
+      "id": "session-to-gemini",
+      "from": "session",
+      "to": "gemini",
+      "label": "OCR → summarize · 20s each"
+    },
+    {
+      "id": "session-to-braille",
+      "from": "session",
+      "to": "braille",
+      "label": "char → dots"
+    },
+    {
+      "id": "session-to-motors",
+      "from": "session",
+      "to": "motorEsp",
+      "label": "6 bools · 1.5s, fail-soft",
+      "variant": "emphasis",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "session-ws",
+      "from": "session",
+      "to": "dashboard",
+      "label": "state via WS /ws",
+      "variant": "dashed",
+      "fromSide": "left",
+      "toSide": "bottom"
+    },
+    {
+      "id": "esp-to-motors",
+      "from": "motorEsp",
+      "to": "motors",
+      "label": "GPIO on/off"
+    },
+    {
+      "id": "esp-to-speaker",
+      "from": "motorEsp",
+      "to": "speaker",
+      "label": "only if character set",
+      "variant": "dashed"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "rose",
+      "title": "Playback bugs (reproduced)",
+      "items": [
+        "Reaching the end of the text crashes the play loop (IndexError); the final stop broadcast is lost, so the dashboard still shows playing",
+        "Start after the end crashes again and leaves is_playing true; Start then does nothing until Pause is pressed",
+        "Next past the last character returns HTTP 500 (IndexError)",
+        "Next / Previous / Repeat send the ON pattern and never turn it off; motors vibrate until the next command",
+        "Pause then Start within ~1.6s leaves two play loops running at once",
+        "Next / Previous during playback move the same indices the loop is using"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Capture path",
+      "items": [
+        "The trigger only returns after the whole pipeline: OCR + summary over 10s shows \"Could not reach the ESP32-CAM\", yet the capture still finishes and is broadcast",
+        "OCR + summary can take up to 40s; the camera gives up at 20s and logs a failed upload, but the backend still processes it",
+        "Camera init failure does not stop boot; every capture then fails with 500, shown as \"Could not reach the ESP32-CAM\"",
+        "The camera web server handles one request at a time; a second trigger waits for the first upload",
+        "An empty POST /api/capture still goes to Gemini and ends as \"no readable text\"",
+        "Capturing during playback swaps the text mid-play; the loop keeps running from the new start"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Gemini fail-soft",
+      "items": [
+        "OCR non-200, timeout or unexpected response shape → empty text → \"Capture returned no readable text.\"",
+        "Empty OCR text skips the summary call",
+        "Summary failure → the raw OCR text is played instead",
+        "Empty text → Start sends one all-off cell and stops cleanly"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "Text → Braille",
+      "items": [
+        "Only a–z are mapped; digits and punctuation are removed before playback",
+        "Apostrophes are kept and play as a blank (all-off) cell for 1.2s",
+        "Uppercase is lowered; sentences split only on . ! ? followed by whitespace",
+        "WORD_PAUSE is defined in config.py but never used: no extra gap between words",
+        "Previous jumps to the first letter of the previous word and never crosses into the previous sentence",
+        "Pause takes effect after the current on + off cycle (up to 1.6s) and still advances one character"
+      ]
+    },
+    {
+      "dot": "orange",
+      "title": "Motor board",
+      "items": [
+        "Unreachable board: each command is logged and playback continues, but each try can add up to 1.5s per cell",
+        "The backend ignores the reply status, so 400 \"missing body\" / \"bad json\" pass silently",
+        "Motors are set before audio; WAV playback holds the reply, so long clips exceed 1.5s and are logged as unreachable",
+        "Missing WAV or failed LittleFS mount is logged on serial; motors still work",
+        "The session never passes speak_char, so the speaker is silent during playback"
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "Network + dashboard",
+      "items": [
+        "Both boards retry Wi-Fi forever at boot with no timeout",
+        "The two firmwares are set to different Wi-Fi networks and config.py IPs sit on different subnets; the laptop must reach both",
+        "Device IPs are DHCP-assigned; stale IPs in config.py only show as \"Could not reach\" logs",
+        "The camera's upload URL hardcodes the laptop IP in camera.ino",
+        "Dashboard reconnects every 2s and gets the full state on connect; dead sockets are dropped on the next failed send",
+        "Any broadcast during a pending capture (e.g. a playback tick) is treated as the capture result"
+      ]
+    }
+  ]
+}

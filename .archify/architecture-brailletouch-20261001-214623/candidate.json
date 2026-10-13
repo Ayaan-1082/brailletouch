@@ -1,0 +1,267 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "BrailleTouch System Architecture",
+    "output": ".archify/architecture-brailletouch-20261001-214623/brailletouch.html",
+    "quality_profile": "showcase",
+    "locale": "en"
+  },
+  "components": [
+    {
+      "id": "dashboard",
+      "type": "frontend",
+      "label": "Dashboard",
+      "sublabel": "index.html + app.js",
+      "pos": [
+        40,
+        80
+      ],
+      "size": [
+        150,
+        64
+      ]
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "FastAPI backend",
+      "sublabel": "main.py :8000",
+      "pos": [
+        300,
+        80
+      ],
+      "size": [
+        170,
+        64
+      ]
+    },
+    {
+      "id": "camera",
+      "type": "external",
+      "label": "ESP32-CAM",
+      "sublabel": "OV2640 · /capture",
+      "pos": [
+        660,
+        80
+      ],
+      "size": [
+        160,
+        64
+      ]
+    },
+    {
+      "id": "session",
+      "type": "backend",
+      "label": "SessionManager",
+      "sublabel": "state + play loop",
+      "pos": [
+        300,
+        280
+      ],
+      "size": [
+        170,
+        64
+      ]
+    },
+    {
+      "id": "gemini",
+      "type": "cloud",
+      "label": "Gemini API",
+      "sublabel": "generateContent",
+      "pos": [
+        660,
+        280
+      ],
+      "size": [
+        160,
+        64
+      ]
+    },
+    {
+      "id": "braille",
+      "type": "backend",
+      "label": "Braille engine",
+      "sublabel": "UEB Grade 1 a–z",
+      "pos": [
+        300,
+        480
+      ],
+      "size": [
+        170,
+        64
+      ]
+    },
+    {
+      "id": "motorEsp",
+      "type": "external",
+      "label": "Motor ESP32",
+      "sublabel": "POST /motors",
+      "pos": [
+        660,
+        480
+      ],
+      "size": [
+        160,
+        64
+      ]
+    },
+    {
+      "id": "motors",
+      "type": "external",
+      "label": "6 vibration motors",
+      "sublabel": "GPIO 26 27 14 12 13 33",
+      "pos": [
+        960,
+        480
+      ],
+      "size": [
+        170,
+        64
+      ]
+    },
+    {
+      "id": "speaker",
+      "type": "external",
+      "label": "Speaker",
+      "sublabel": "letter WAVs (LittleFS)",
+      "pos": [
+        660,
+        650
+      ],
+      "size": [
+        160,
+        64
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Laptop · Python backend",
+      "wraps": [
+        "api",
+        "session",
+        "braille"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "Motor controller board",
+      "wraps": [
+        "motorEsp",
+        "motors",
+        "speaker"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "dash-to-api",
+      "from": "dashboard",
+      "to": "api",
+      "label": "POST /api/*",
+      "variant": "emphasis"
+    },
+    {
+      "id": "api-trigger-cam",
+      "from": "api",
+      "to": "camera",
+      "label": "POST /capture",
+      "variant": "emphasis"
+    },
+    {
+      "id": "cam-upload-jpeg",
+      "from": "camera",
+      "to": "api",
+      "label": "JPEG → /api/capture",
+      "variant": "emphasis",
+      "fromSide": "top",
+      "toSide": "top"
+    },
+    {
+      "id": "api-to-session",
+      "from": "api",
+      "to": "session",
+      "label": "capture / controls"
+    },
+    {
+      "id": "session-to-gemini",
+      "from": "session",
+      "to": "gemini",
+      "label": "OCR → summarize"
+    },
+    {
+      "id": "session-to-braille",
+      "from": "session",
+      "to": "braille",
+      "label": "char → dots"
+    },
+    {
+      "id": "session-to-motors",
+      "from": "session",
+      "to": "motorEsp",
+      "label": "6 bools",
+      "variant": "emphasis",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "session-ws",
+      "from": "session",
+      "to": "dashboard",
+      "label": "state via WS /ws",
+      "variant": "dashed",
+      "fromSide": "left",
+      "toSide": "bottom"
+    },
+    {
+      "id": "esp-to-motors",
+      "from": "motorEsp",
+      "to": "motors",
+      "label": "GPIO on/off"
+    },
+    {
+      "id": "esp-to-speaker",
+      "from": "motorEsp",
+      "to": "speaker",
+      "label": "if character set",
+      "variant": "dashed"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Capture path",
+      "items": [
+        "Dashboard only pokes the camera; the JPEG returns on a second request",
+        "/api/capture waits for OCR + summary before replying (camera allows 20s)"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Playback loop",
+      "items": [
+        "Motors on 1.2s → off → 0.4s pause → next char/word/sentence",
+        "Every state change is broadcast to all dashboards"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Fail-soft",
+      "items": [
+        "Failed OCR gives empty text; failed summary falls back to OCR text",
+        "Unreachable motor ESP32 is logged and playback continues"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Known gaps",
+      "items": [
+        "Session never passes speak_char, so the speaker is idle during playback",
+        "Only a–z are mapped; digits and punctuation are dropped",
+        "Device IPs are DHCP-assigned; keep config.py current"
+      ]
+    }
+  ]
+}

@@ -8,7 +8,6 @@ __pycache__/
 
 # tool and generated folders
 .playwright-mcp/
-.archify/
 .impeccable/config.local.json
 .impeccable/hook.cache.json
 

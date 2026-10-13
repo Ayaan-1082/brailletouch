@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "ea5cfeac-66d0-4d24-af58-31674db1aab1",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "C:\\Users\\khana\\OneDrive\\Documents\\1imp project\\brailletouch\\.archify\\architecture-brailletouch-20261001-214623\\candidate.json",
+  "output": "C:\\Users\\khana\\OneDrive\\Documents\\1imp project\\brailletouch\\.archify\\architecture-brailletouch-20261001-214623\\brailletouch.html",
+  "specification": {
+    "sha256": "f56ecbc1cb9d5764e1bd02d4b38828cb741fdd32dd960946e0f520d6f995c567",
+    "bytes": 5279
+  },
+  "artifact": {
+    "sha256": "b8f2e5ed20a502b681eefa71fd18f66b4799dc29c841a45b6c7dd8930ccad34c",
+    "bytes": 764031
+  }
+}

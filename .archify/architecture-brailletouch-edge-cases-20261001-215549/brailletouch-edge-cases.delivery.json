@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "5433e485-38f4-4f72-8701-f193cd91db06",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "C:\\Users\\khana\\OneDrive\\Documents\\1imp project\\brailletouch\\.archify\\architecture-brailletouch-edge-cases-20261001-215549\\candidate.json",
+  "output": "C:\\Users\\khana\\OneDrive\\Documents\\1imp project\\brailletouch\\.archify\\architecture-brailletouch-edge-cases-20261001-215549\\brailletouch-edge-cases.html",
+  "specification": {
+    "sha256": "cb2f65ff0222d4d0dd7278909814c6be491d7754340be6cdf0048aa906375af8",
+    "bytes": 8599
+  },
+  "artifact": {
+    "sha256": "f4769bf652d5ea6cda415aacc53701b327ff1970a1b63b8982c5bf2c83b2d089",
+    "bytes": 768370
+  }
+}

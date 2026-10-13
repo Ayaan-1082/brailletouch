@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "architecture",
+  "quality": "showcase",
+  "specification": {
+    "path": "C:\\Users\\khana\\OneDrive\\Documents\\1imp project\\brailletouch\\.archify\\architecture-brailletouch-edge-cases-20261001-215549\\candidate.json",
+    "sha256": "f6fb78e14539b08f9b6c9fd3427245bef41becd7c71becac0f28caf04b3d4429",
+    "bytes": 6976
+  },
+  "artifact": {
+    "path": "C:\\Users\\khana\\OneDrive\\Documents\\1imp project\\brailletouch\\.archify\\architecture-brailletouch-edge-cases-20261001-215549\\brailletouch-edge-cases.html",
+    "sha256": "bc8677484b38183b6c66eff4cfab340fd638eee21ad966b7374bd08306b91bfa",
+    "bytes": 768786
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "C:\\Users\\khana\\OneDrive\\Documents\\1imp project\\brailletouch\\.archify\\architecture-brailletouch-edge-cases-20261001-215549\\brailletouch-edge-cases.finalize.json",
+    "summaryReceipt": "C:\\Users\\khana\\OneDrive\\Documents\\1imp project\\brailletouch\\.archify\\architecture-brailletouch-edge-cases-20261001-215549\\brailletouch-edge-cases.finalize-summary.json",
+    "browserCheckReceipt": "C:\\Users\\khana\\OneDrive\\Documents\\1imp project\\brailletouch\\.archify\\architecture-brailletouch-edge-cases-20261001-215549\\brailletouch-edge-cases.browser-check.json"
+  },
+  "visualReview": "not-requested",
+  "durationMs": 5058
+}
