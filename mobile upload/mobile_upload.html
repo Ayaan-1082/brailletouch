@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BrailleTouch — Phone Capture</title>
+<style>
+  body {
+    font-family: system-ui, sans-serif;
+    background: #f6f3ec;
+    color: #2b2b28;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1.5rem;
+    min-height: 100vh;
+    margin: 0;
+    box-sizing: border-box;
+  }
+  h1 { font-size: 1.3rem; margin-bottom: 0.3rem; }
+  p.sub { color: #6f6a5e; font-size: 0.9rem; margin-top: 0; text-align: center; }
+  input[type="file"] {
+    margin: 1.5rem 0;
+    font-size: 1rem;
+  }
+  button {
+    font-size: 1.1rem;
+    padding: 0.8rem 2rem;
+    border-radius: 8px;
+    border: 1px solid #ded6c4;
+    background: #3b6e5e;
+    color: #fff;
+    cursor: pointer;
+  }
+  button:disabled { opacity: 0.5; }
+  #status {
+    margin-top: 1.2rem;
+    font-size: 0.95rem;
+    text-align: center;
+    min-height: 1.4rem;
+  }
+  #status.error { color: #a13d2a; }
+  #preview {
+    max-width: 90%;
+    max-height: 300px;
+    margin-top: 1rem;
+    border-radius: 8px;
+    border: 1px solid #ded6c4;
+  }
+</style>
+</head>
+<body>
+  <h1>BrailleTouch — Phone Capture</h1>
+  <p class="sub">Photograph printed text, or your surroundings. Gemini reads it and the device plays it in Braille.</p>
+
+  <!-- capture="environment" opens the phone's camera directly on most mobile browsers -->
+  <input type="file" id="fileInput" accept="image/*" capture="environment">
+  <img id="preview" style="display:none;">
+  <button id="uploadBtn" disabled>Upload to backend</button>
+  <p id="status"></p>
+
+  <script>
+    // Relative: open this page at http://<laptop-ip>:8000/upload (python main.py prints the address),
+    // so it always talks to the laptop it was loaded from. No IP to edit.
+    const BACKEND_URL = "/api/capture";
+    const MAX_SIDE = 1600;   // px on the long side: plenty for reading text, far faster over a hotspot
+
+    const fileInput = document.getElementById("fileInput");
+    const uploadBtn = document.getElementById("uploadBtn");
+    const preview = document.getElementById("preview");
+    const status = document.getElementById("status");
+
+    let selectedFile = null;
+
+    function setStatus(text, isError = false) {
+      status.textContent = text;
+      status.classList.toggle("error", isError);
+    }
+
+    if (location.protocol === "file:") {
+      setStatus("Open this page from the address printed by 'python main.py' (http://<laptop-ip>:8000/upload), not as a file.", true);
+    }
+
+    // Smaller JPEG for the upload; the original file if the browser can't decode it (e.g. HEIC outside Safari).
+    async function shrink(file) {
+      try {
+        const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
+        const scale = Math.min(1, MAX_SIDE / Math.max(bitmap.width, bitmap.height));
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(bitmap.width * scale);
+        canvas.height = Math.round(bitmap.height * scale);
+        canvas.getContext("2d").drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+        const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.85));
+        return blob || file;
+      } catch (_) {
+        return file;
+      }
+    }
+
+    fileInput.addEventListener("change", () => {
+      selectedFile = fileInput.files[0];
+      if (selectedFile) {
+        preview.src = URL.createObjectURL(selectedFile);
+        preview.style.display = "block";
+        uploadBtn.disabled = false;
+        setStatus("");
+      }
+    });
+
+    uploadBtn.addEventListener("click", async () => {
+      if (!selectedFile) return;
+      uploadBtn.disabled = true;
+      setStatus("Preparing photo…");
+
+      try {
+        const body = await shrink(selectedFile);
+        setStatus(`Uploading ${Math.round(body.size / 1024)} KB and reading it with Gemini…`);
+        const res = await fetch(BACKEND_URL, {
+          method: "POST",
+          headers: { "Content-Type": body.type || "application/octet-stream" },
+          body, // raw image bytes, same as the ESP32-CAM sends
+        });
+        const data = await res.json().catch(() => null);
+
+        if (!res.ok || !data) {
+          setStatus(`Backend responded with an error (${res.status}).`, true);
+        } else if (data.status === "error") {
+          setStatus(data.detail || "The backend reported a problem.", true);
+        } else {
+          const what = data.kind === "scene" ? "Scene" : "Read";
+          setStatus(`${what}: “${data.summary}” — ready: press Start on the dashboard.`);
+        }
+      } catch (e) {
+        setStatus("Could not reach the backend. Use the address printed by 'python main.py', on the same Wi-Fi, and check the firewall rule.", true);
+      } finally {
+        uploadBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

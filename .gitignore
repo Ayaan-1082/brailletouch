@@ -1,0 +1,16 @@
+# secrets: real Gemini key and real Wi-Fi details stay on this laptop only
+backend/config.py
+local-secrets/
+
+# Python
+__pycache__/
+*.pyc
+
+# tool and generated folders
+.playwright-mcp/
+.archify/
+.impeccable/config.local.json
+.impeccable/hook.cache.json
+
+# not published: patent drafts, older decks, organiser template, mock-ups
+ppt/

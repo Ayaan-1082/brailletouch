@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BrailleTouch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <h1>BrailleTouch</h1>
+  <div class="phone-qr">
+    <img id="phoneQr" alt="QR code: phone upload page">
+    <span>Scan with your phone<br>to upload a photo</span>
+  </div>
+  <div class="conn">
+    <span id="connDot" class="dot dot--off"></span>
+    <span id="connLabel">Connecting…</span>
+  </div>
+</header>
+
+<main class="layout">
+
+  <section class="panel panel--text">
+    <h2>Detected text</h2>
+    <p id="ocrText" class="muted">Nothing captured yet.</p>
+  </section>
+
+  <section class="panel panel--text">
+    <h2>AI summary</h2>
+    <p id="summaryText" class="muted">Waiting for a capture.</p>
+  </section>
+
+  <section class="panel panel--sentence">
+    <h2>Current sentence</h2>
+    <p id="sentenceText" class="sentence">—</p>
+  </section>
+
+  <section class="panel panel--hero">
+    <div class="hero-cell-wrap">
+      <div class="braille-cell" id="brailleCell">
+        <span class="d" data-dot="1"></span>
+        <span class="d" data-dot="4"></span>
+        <span class="d" data-dot="2"></span>
+        <span class="d" data-dot="5"></span>
+        <span class="d" data-dot="3"></span>
+        <span class="d" data-dot="6"></span>
+      </div>
+    </div>
+    <div class="hero-meta">
+      <div class="hero-word">Word: <span id="currentWord">—</span></div>
+      <div class="hero-char">Character: <span id="currentChar">—</span></div>
+    </div>
+  </section>
+
+  <section class="panel panel--motors">
+    <h2>Motor status</h2>
+    <ul class="motor-list" id="motorList">
+      <!-- filled by app.js -->
+    </ul>
+  </section>
+
+  <section class="panel panel--progress">
+    <h2>Progress</h2>
+    <p id="progressWord" class="muted">Word 0 of 0</p>
+    <p id="progressChar" class="muted">Character 0 of 0</p>
+  </section>
+
+</main>
+
+<footer class="controls">
+  <div class="controls-row">
+    <button id="btnCapture" class="btn btn--primary">Capture</button>
+    <button id="btnStart" class="btn">Start</button>
+    <button id="btnPause" class="btn">Pause</button>
+    <button id="btnPrev" class="btn">Previous</button>
+    <button id="btnNext" class="btn">Next</button>
+    <button id="btnRepeat" class="btn">Repeat</button>
+  </div>
+  <p id="statusMessage" class="status-message"></p>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

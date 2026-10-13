@@ -1,0 +1,33 @@
+{
+  "hook": {
+    "enabled": true,
+    "limits": {
+      "maxFindings": 5,
+      "maxChars": 8000
+    }
+  },
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "broken-image",
+        "value": "*",
+        "files": [
+          "frontend-demo/index.html"
+        ],
+        "createdAt": "2026-10-05T23:57:25.589Z",
+        "reason": "Agent: QR img src is assigned at runtime by app.js; verified in browser it loads (naturalWidth 125) with alt text; detector reads static HTML only"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "frontend-demo/index.html"
+        ],
+        "createdAt": "2026-10-06T00:00:49.058Z",
+        "reason": "Agent: .text-col divider false positive; second column has 40px left padding (measured in browser by the critique reviewer); first column has no border"
+      }
+    ]
+  }
+}
